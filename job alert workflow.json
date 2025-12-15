@@ -1,0 +1,295 @@
+{
+  "name": "My workflow 6",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=https://api.apify.com/v2/acts/{{$json.actorId}}/run-sync-get-dataset-items?token={{$json.token}}\n\n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2672,
+        416
+      ],
+      "id": "06ee821e-5180-4303-bb52-9c2e302340dd",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const token = "YOUR_APIFY_TOKEN_HERE"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        416
+      ],
+      "id": "314aeef4-3d4e-491f-b23e-f932faac7c20",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1qxBoBonF25lRLc6QPxsaHVvvmO-I2QJ8k50rxZMk-7I",
+          "mode": "list",
+          "cachedResultName": "Job Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qxBoBonF25lRLc6QPxsaHVvvmO-I2QJ8k50rxZMk-7I/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1519673433,
+          "mode": "list",
+          "cachedResultName": "all",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qxBoBonF25lRLc6QPxsaHVvvmO-I2QJ8k50rxZMk-7I/edit#gid=1519673433"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Job Title": "={{ $json.job_title }}",
+            "Company name": "={{ $json.company_name }}",
+            "location": "={{ $json.location }}",
+            "skills": "={{ $json.job_description }}",
+            "Time posted": "={{ $json.time_posted }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company name",
+              "displayName": "Company name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "skills",
+              "displayName": "skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time posted",
+              "displayName": "Time posted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2896,
+        416
+      ],
+      "id": "98bc7f15-7b3d-4cef-b7d1-11f02c84a265",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BF8bhw38bipAYN2c",
+          "name": "Tharushika Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "=New Job Alert",
+        "message": "={{ $json.message }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3344,
+        416
+      ],
+      "id": "f149ad55-65a0-4775-a3bf-89062bf0e2c1",
+      "name": "Send a message",
+      "webhookId": "3d7da9fc-4d18-4c5e-8f53-90d9d065f019",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "fFMVf0Lv3JE3tjVI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        2224,
+        320
+      ],
+      "id": "3eec2e6b-5654-40d8-b173-71801bee9850",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst emails = [\"amtprasadini@gmail.com\", \"aththanayakatharushika@gmail.com\"];\n\nconst emailMessages = emails.map((email, index) => {\n  const item = items[index];\n  return {\n    json: {\n      email,\n      message: `Company: ${item?.json[\"Company name\"]}, Job Title: ${item?.json[\"Job Title\"]}, Location: ${item?.json?.location}`,\n    },\n    pairedItem: index,\n  };\n});\n\nreturn emailMessages;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        416
+      ],
+      "id": "e1775e87-98e3-42bc-bc16-be5d9d5a25b9",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8,12 * * *"
+            }
+          ]
+        }
+      },
+      "id": "d32dfb95-bd60-42e6-895f-ea2bf6cb6fdc",
+      "name": "Daily at 8 AM and 12 PM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        2224,
+        512
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily at 8 AM and 12 PM": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "006bfb0e-d06d-4753-95bb-88ded46c69e2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a72ce4f0028ede913c77dca504c6ca53546bd3cd99ad18424c243e562601434a"
+  },
+  "id": "jRX7Is2wnEgBz8n3",
+  "tags": []
+}
